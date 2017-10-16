@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView.ItemAnimator itemAnimator;
     MyItemListAdapter myItemListAdapter;
     List<Item> items = new ArrayList<>();
+    int start = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,15 +56,27 @@ public class MainActivity extends AppCompatActivity {
         itemAnimator = new DefaultItemAnimator();
         queryList.setLayoutManager(layoutManager);
         queryList.setItemAnimator(itemAnimator);
+        queryList.addOnScrollListener( new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                Toast.makeText(MainActivity.this, "onLoadMore", Toast.LENGTH_SHORT).show();
+                start+=25;
+//                nextPage( queryView.getText().toString() , start );
+                nextPage( "lamps" );
+            }
+        });
     }
 
     public void search(View view) {
         closeKeyboard();
         String query = queryView.getText().toString();
-        //items = new ArrayList<>();
-        queryList.setAdapter( null );
 
-        RemoteDataSource.getWalmartLookup( query )
+        //reset everything
+        items = new ArrayList<>();
+        queryList.setAdapter( null );
+        start = 1;
+
+        RemoteDataSource.getWalmartLookup( query, start )
                 .observeOn( AndroidSchedulers.mainThread() )
                 .subscribeOn(  Schedulers.io() )
                 .subscribe(new Observer<WalmartLookup>() {
@@ -79,9 +92,11 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "onNext: query: " + walmartLookup.getQuery() );
                         Log.d(TAG, "onNext: total results: " + walmartLookup.getTotalResults() );
                         Log.d(TAG, "onNext: get start: " + walmartLookup.getStart());
-                        Log.d(TAG, "onNext: items count: " + walmartLookup.getItems().size());
 
-                        items = walmartLookup.getItems();
+                        if( walmartLookup.getTotalResults() != 0 ) {
+                            Log.d(TAG, "onNext: items count: " + walmartLookup.getItems().size());
+                            items = walmartLookup.getItems();
+                        }
                     }
 
                     @Override
@@ -97,10 +112,50 @@ public class MainActivity extends AppCompatActivity {
 
                         myItemListAdapter = new MyItemListAdapter( items );
                         queryList.setAdapter( myItemListAdapter );
-                        status.setText( "" );
+
+                        String s = (items.size() > 0) ? "" : "No Results";
+                        status.setText( s );
                     }
                 });
     }
+
+    public void nextPage( String query ) {
+        RemoteDataSource.getWalmartLookup( query, start )
+                .observeOn( AndroidSchedulers.mainThread() )
+                .subscribeOn(  Schedulers.io() )
+                .subscribe(new Observer<WalmartLookup>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+                        Log.d(TAG, "onSubscribe: ");
+                        status.setText( "Searching...");
+                    }
+
+                    @Override
+                    public void onNext(@NonNull WalmartLookup walmartLookup) {
+                        for( Item i : walmartLookup.getItems() )
+                            items.add( i );
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        Log.d(TAG, "onError: " + e.toString());
+                        status.setText( "No Results.");
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "onComplete: ");
+
+                        myItemListAdapter = new MyItemListAdapter( items );
+                        queryList.setAdapter( myItemListAdapter );
+//
+//                        String s = (items.size() > 0) ? "" : "No Results";
+//                        status.setText( s );
+                    }
+                });
+    }
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

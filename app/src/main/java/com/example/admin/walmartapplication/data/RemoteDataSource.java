@@ -21,11 +21,11 @@ public class RemoteDataSource {
         return retrofit;
     }
 
-    public static Observable<WalmartLookup> getWalmartLookup( String query ) {
+    public static Observable<WalmartLookup> getWalmartLookup( String query, int start ) {
         Retrofit retrofit = create();
         RemoteService remoteService = retrofit.create( RemoteService.class );
 
-        return remoteService.getWalmartLookup( query );
+        return remoteService.getWalmartLookup( query, start );
     }
 }
 //http://api.walmartlabs.com/v1/search?query=ipod&format=json&apiKey=

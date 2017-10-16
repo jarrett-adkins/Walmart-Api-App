@@ -1,6 +1,8 @@
 package com.example.admin.walmartapplication;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,13 +10,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.admin.walmartapplication.data.RemoteDataSource;
 import com.example.admin.walmartapplication.model.ImageEntity;
 import com.example.admin.walmartapplication.model.Item;
+import com.example.admin.walmartapplication.model.WalmartLookup;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 public class MyItemListAdapter extends RecyclerView.Adapter<MyItemListAdapter.ViewHolder> {
 
@@ -50,10 +61,9 @@ public class MyItemListAdapter extends RecyclerView.Adapter<MyItemListAdapter.Vi
                 .into( holder.rating );
 
         holder.title.setText( i.getName() );
-        holder.price.setText( "$" + i.getSalePrice() );
-        // TODO: 10/15/2017 String format to always be $00.00
-        holder.stock.setText( i.getStock() );
 
+        holder.price.setText( String.format( "$%,.2f", i.getSalePrice()));
+        holder.stock.setText( i.getStock() );
     }
 
     @Override
@@ -82,7 +92,6 @@ public class MyItemListAdapter extends RecyclerView.Adapter<MyItemListAdapter.Vi
             title = itemView.findViewById( R.id.tvTitle );
             price = itemView.findViewById( R.id.tvPrice );
             stock = itemView.findViewById( R.id.tvInStock );
-
         }
     }
 }

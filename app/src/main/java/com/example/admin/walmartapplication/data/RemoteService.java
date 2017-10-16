@@ -11,11 +11,18 @@ import retrofit2.http.Query;
 public interface RemoteService {
 
     @GET("search?format=json&numItems=25&apiKey=" + Constants.VALUES.API_KEY)
-    Observable<WalmartLookup> getWalmartLookup( @Query("query") String query );
+    Observable<WalmartLookup> getWalmartLookup( @Query("query") String query, @Query("start") int start );
 
 }
 
 /*
+Getting first 25
+&start=1
+
+Getting second 25
+&start=26
+
+
 Paginated
 
 Get all items in Electronics on rollback in JSON format
