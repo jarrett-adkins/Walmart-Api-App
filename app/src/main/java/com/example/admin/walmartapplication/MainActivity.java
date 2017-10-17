@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     MyItemListAdapter myItemListAdapter;
     List<Item> items = new ArrayList<>();
     int start = 1;
+    String query = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,17 +60,17 @@ public class MainActivity extends AppCompatActivity {
         queryList.addOnScrollListener( new EndlessRecyclerViewScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                Toast.makeText(MainActivity.this, "onLoadMore", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "onLoadMore", Toast.LENGTH_SHORT).show();
                 start+=25;
-//                nextPage( queryView.getText().toString() , start );
-                nextPage( "lamps" );
+                nextPage( totalItemsCount );
             }
         });
     }
 
     public void search(View view) {
         closeKeyboard();
-        String query = queryView.getText().toString();
+//        String query = queryView.getText().toString();
+        query = queryView.getText().toString();
 
         //reset everything
         items = new ArrayList<>();
@@ -119,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    public void nextPage( String query ) {
+    public void nextPage( final int totalItemsCount ) {
         RemoteDataSource.getWalmartLookup( query, start )
                 .observeOn( AndroidSchedulers.mainThread() )
                 .subscribeOn(  Schedulers.io() )
@@ -138,7 +139,8 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(@NonNull Throwable e) {
-                        Log.d(TAG, "onError: " + e.toString());
+                        Log.d(TAG, "nextPage: onError: " + e.toString());
+                        Log.d(TAG, "nextPage: onError: " + query + " " + start);
                         status.setText( "No Results.");
                         e.printStackTrace();
                     }
@@ -147,11 +149,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete() {
                         Log.d(TAG, "onComplete: ");
 
-                        myItemListAdapter = new MyItemListAdapter( items );
-                        queryList.setAdapter( myItemListAdapter );
-//
-//                        String s = (items.size() > 0) ? "" : "No Results";
-//                        status.setText( s );
+                        myItemListAdapter.notifyItemRangeChanged( start, totalItemsCount);
                     }
                 });
     }
@@ -162,10 +160,15 @@ public class MainActivity extends AppCompatActivity {
         //keeps the form form getting wiped when onDestroy gets called, such as when the phone is rotated.
         super.onSaveInstanceState(outState);
         Log.d(TAG, "onSaveInstanceState: ");
-        outState.putString("query", queryView.getText().toString());
+//        outState.putString("query", queryView.getText().toString());
+        outState.putString("query", query);
+        outState.putInt("start", start);
 
         ArrayList<Item> itemArrayList = (ArrayList<Item>) items;
         outState.putParcelableArrayList( "itemArray", itemArrayList);
+
+//        Log.d(TAG, "onSaveInstanceState: query=" + query);
+//        Log.d(TAG, "onSaveInstanceState: start=" + start);
     }
 
     @Override
@@ -173,16 +176,22 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
         Log.d(TAG, "onRestoreInstanceState: ");
 
-        closeKeyboard();
+//        closeKeyboard();
         queryView.setText( savedInstanceState.getString( "query" ));
+        query = savedInstanceState.getString( "query" );
+        start = savedInstanceState.getInt( "start" );
 
         ArrayList<Item> itemArrayList = savedInstanceState.getParcelableArrayList( "itemArray" );
 
+        //if we got something back from the instance
         if( !itemArrayList.isEmpty() ) {
             items = itemArrayList;
             myItemListAdapter = new MyItemListAdapter(items);
             queryList.setAdapter(myItemListAdapter);
         }
+
+//        Log.d(TAG, "onRestoreInstanceState: query=" + query);
+//        Log.d(TAG, "onRestoreInstanceState: start=" + start);
     }
 
     public void closeKeyboard() {
@@ -194,10 +203,10 @@ public class MainActivity extends AppCompatActivity {
 
 /*
 X 1. First screen should contain a List of all the products returned by the Service call with images.
-2. The list should support Lazy Loading. When scrolled to the bottom of the list, start lazy loading
-   next page of products and append it to the list.
-3. When a product is clicked, it should go to the second screen.
+X 2. The list should support Lazy Loading. When scrolled to the bottom of the list, start lazy loading
+     next page of products and append it to the list.
+X 3. When a product is clicked, it should go to the second screen.
 4. Second screen should display details of the product.
 5. Ability to swipe to view next/previous item ( Eg: Gmail App)
-BONUS : Handling orientation changes efficiently will be a plus.
+X BONUS : Handling orientation changes efficiently will be a plus.
  */

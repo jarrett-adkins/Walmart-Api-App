@@ -49,8 +49,10 @@ public class MyItemListAdapter extends RecyclerView.Adapter<MyItemListAdapter.Vi
     }
 
     @Override
-    public void onBindViewHolder(MyItemListAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(MyItemListAdapter.ViewHolder holder, final int position) {
         Item i = items.get( position );
+
+        holder.item = i;
 
         Glide.with( context )
                 .load( i.getThumbnailImage() )
@@ -74,16 +76,19 @@ public class MyItemListAdapter extends RecyclerView.Adapter<MyItemListAdapter.Vi
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView image, rating;
         TextView title, price, stock;
+        Item item;
 
         public ViewHolder(View itemView) {
             super(itemView);
+
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Log.d(TAG, "onClick: clicked");
-//                    Intent intent = new Intent(context, ImageActivity.class);
-//                    intent.putExtra("start", item);
-//                    context.startActivity(intent);
+                    //Mac's way
+                    Intent intent = new Intent(context, ProductDetailsActivity.class);
+                    intent.putExtra("item", item);
+                    context.startActivity(intent);
                 }
             });
 

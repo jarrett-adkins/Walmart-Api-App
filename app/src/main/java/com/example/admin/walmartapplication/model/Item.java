@@ -30,6 +30,9 @@ public class Item  implements Parcelable {
     @SerializedName("categoryPath")
     @Expose
     private String categoryPath;
+    @SerializedName("shortDescription")
+    @Expose
+    private String shortDescription;
     @SerializedName("longDescription")
     @Expose
     private String longDescription;
@@ -122,9 +125,14 @@ public class Item  implements Parcelable {
     private Boolean availableOnline;
 
     protected Item(Parcel in) {
+        itemId = in.readInt();
+        parentItemId = in.readInt();
         name = in.readString();
+//        msrp = in.readDouble();
+        salePrice = in.readDouble();
         upc = in.readString();
         categoryPath = in.readString();
+        shortDescription = in.readString();
         longDescription = in.readString();
         brandName = in.readString();
         thumbnailImage = in.readString();
@@ -145,9 +153,14 @@ public class Item  implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(itemId);
+        dest.writeInt(parentItemId);
         dest.writeString(name);
+//        dest.writeDouble(msrp);
+        dest.writeDouble(salePrice);
         dest.writeString(upc);
         dest.writeString(categoryPath);
+        dest.writeString(shortDescription);
         dest.writeString(longDescription);
         dest.writeString(brandName);
         dest.writeString(thumbnailImage);
@@ -237,6 +250,14 @@ public class Item  implements Parcelable {
 
     public void setCategoryPath(String categoryPath) {
         this.categoryPath = categoryPath;
+    }
+
+    public String getShortDescription() {
+        return shortDescription;
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
     }
 
     public String getLongDescription() {
